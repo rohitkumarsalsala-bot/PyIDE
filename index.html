@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PyIDE Pro</title>
+<style>
+:root{--bg:#0f1419;--panel:#171d25;--fg:#e6edf3;--mute:#7d8a99;--acc:#3ddc97;--bd:#252e39;--kw:#ff7b72;--st:#a5d6ff;--cm:#6e7b8a;--nu:#79c0ff;--bi:#d2a8ff;--err:#ff6b6b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#fff;--panel:#f3f5f8;--fg:#1f2328;--mute:#6a737d;--acc:#0a8f5a;--bd:#d8dee4;--kw:#cf222e;--st:#0a3069;--cm:#6e7781;--nu:#0550ae;--bi:#8250df;--err:#d1242f}}
+:root[data-theme="light"]{--bg:#fff;--panel:#f3f5f8;--fg:#1f2328;--mute:#6a737d;--acc:#0a8f5a;--bd:#d8dee4;--kw:#cf222e;--st:#0a3069;--cm:#6e7781;--nu:#0550ae;--bi:#8250df;--err:#d1242f}
+:root[data-theme="dark"]{--bg:#0f1419;--panel:#171d25;--fg:#e6edf3;--mute:#7d8a99;--acc:#3ddc97;--bd:#252e39}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+header{position:relative;display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel);border-bottom:1px solid var(--bd)}
+header b{flex:1;font-size:16px}
+button{background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:7px;padding:5px 9px;font-size:13px}
+button.run{background:var(--acc);color:#04130c;border:0;font-weight:700}
+button.stop{background:var(--err);color:#fff;border:0}
+#tabs{display:flex;overflow-x:auto;background:var(--panel);border-bottom:1px solid var(--bd)}
+.tab{padding:6px 12px;white-space:nowrap;font-size:13px;color:var(--mute);border-right:1px solid var(--bd)}
+.tab.on{color:var(--fg);background:var(--bg);box-shadow:inset 0 -2px var(--acc)}
+#menu{display:none;position:absolute;right:8px;top:calc(env(safe-area-inset-top,0px) + 44px);z-index:9;flex-direction:column;gap:4px;padding:6px;background:var(--panel);border:1px solid var(--bd);border-radius:10px;box-shadow:0 6px 20px #0006}#menu button{text-align:left;min-width:130px}
+#menu.show{display:flex}
+#edwrap{flex:1;display:flex;min-height:0;position:relative}
+#gut,#hl,#ed{font:var(--fs,14px)/1.5 ui-monospace,Menlo,Consolas,monospace;padding:10px 0;margin:0;tab-size:4}
+#gut{width:38px;text-align:right;color:var(--mute);padding-right:6px;overflow:hidden;background:var(--panel);user-select:none;white-space:pre}
+#box{flex:1;position:relative;min-width:0}
+#hl,#ed{position:absolute;inset:0;padding:10px 10px;white-space:pre;overflow:auto;border:0}
+#hl{pointer-events:none;overflow:hidden}
+#ed{background:transparent;color:transparent;caret-color:var(--fg);resize:none;outline:0}
+.f{color:#c9871a}.k{color:var(--kw)}.s{color:var(--st)}.c{color:var(--cm);font-style:italic}.n{color:var(--nu)}.b{color:var(--bi)}
+#sym{display:flex;overflow-x:auto;gap:3px;padding:3px 4px;background:var(--panel);border-top:1px solid var(--bd)}
+#sym button{min-width:32px;padding:4px 0;font-family:monospace;font-size:14px}
+#out{display:none;position:fixed;inset:0;z-index:20;flex-direction:column;background:var(--bg);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}#out.show{display:flex}
+#oh{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;font-size:12px;color:var(--mute);background:var(--panel);border-bottom:1px solid var(--bd)}
+#con{flex:1;overflow:auto;margin:0;padding:8px 10px 28px;font:13px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
+#con .e{color:var(--err)}
+#con input{background:transparent;border:0;border-bottom:1px solid var(--acc);color:var(--fg);font:inherit;outline:0;width:60%}
+#con img{max-width:100%;background:#fff;border-radius:6px;margin:6px 0;display:block}#turtle{display:none;background:#fff;margin:6px auto}
+#fb{display:none;flex-wrap:wrap;gap:4px;padding:5px 6px;background:var(--panel);border-bottom:1px solid var(--bd)}#fb.show{display:flex}#fb input{flex:1;min-width:90px;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:7px;padding:5px 8px;font-size:13px}#ac{display:none;overflow-x:auto;gap:4px;padding:3px 4px;background:var(--panel);border-top:1px solid var(--bd)}#ac.show{display:flex}#ac button{white-space:nowrap;font-family:ui-monospace,monospace;font-size:13px;padding:4px 10px;color:var(--acc)}#ac button.sn{color:var(--bi)}#edwrap.wrap #ed,#edwrap.wrap #hl{white-space:pre-wrap;overflow-wrap:anywhere}#edwrap.wrap #gut,#edwrap.nol #gut{display:none}
+#sp{display:none;position:fixed;inset:0;z-index:30;background:var(--bg);flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}#sp.show{display:flex}
+#sh{display:flex;align-items:center;gap:10px;padding:8px;background:var(--panel);border-bottom:1px solid var(--bd)}#sl{overflow:auto;padding:4px 14px 30px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--bd);font-size:15px}.row small{display:block;color:var(--mute);font-size:11px}
+.tgl{width:46px;height:26px;border-radius:13px;background:var(--bd);position:relative;border:0;padding:0}.tgl.on{background:var(--acc)}.tgl::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}.tgl.on::after{left:23px}
+#sl select{background:var(--panel);color:var(--fg);border:1px solid var(--bd);border-radius:7px;padding:6px 8px;font-size:14px}#el{position:absolute;left:0;right:0;display:none;background:rgba(255,90,90,.2);border-left:3px solid var(--err);pointer-events:none}#rp{display:none;position:fixed;inset:0;z-index:25;background:var(--bg);flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}#rp.show{display:flex}
+#rh{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:var(--panel);border-bottom:1px solid var(--bd)}
+#rcon{flex:1;overflow:auto;margin:0;padding:8px 10px;font:13px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word}#rcon .p{color:var(--acc)}#rcon .e{color:var(--err)}
+#rq{display:flex;gap:3px;padding:3px 4px;overflow-x:auto;background:var(--panel);border-top:1px solid var(--bd)}#rq button{min-width:34px;font-family:monospace;padding:4px 0}
+#rbar{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel)}#rbar span{color:var(--acc);font-family:monospace}#rin{flex:1;min-width:0;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:8px;font:14px ui-monospace,monospace}#menu{width:250px;max-height:calc(100% - 60px);overflow-y:auto;gap:0;padding:6px 0;border-radius:12px}
+#menu h6{margin:8px 14px 2px;font-size:10px;letter-spacing:.08em;color:var(--mute);flex-shrink:0}
+#menu button{border:0;background:transparent;width:100%;min-width:0;padding:11px 14px;font-size:14px;border-radius:0;flex-shrink:0}#menu button:active{background:var(--bd)}
+#md{display:none;position:fixed;inset:0;z-index:50;background:#0008;align-items:center;justify-content:center;padding:20px}#md.show{display:flex}
+#mc{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:16px;width:100%;max-width:340px}#mt{font-weight:600;margin-bottom:10px;word-break:break-word}
+#mi{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:9px;font-size:15px}#mb{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+#ts{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:13px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}#ts.on{opacity:1}#dw{display:none;position:fixed;inset:0;z-index:35}#dw.show{display:flex}#dws{position:absolute;inset:0;background:#0007}
+#dwp{position:relative;width:84%;max-width:340px;height:100%;background:var(--panel);display:flex;flex-direction:column;border-right:1px solid var(--bd);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#dwh{display:flex;justify-content:space-between;align-items:center;padding:10px}#floc{padding:0 12px 6px;font-size:11px;color:var(--mute);border-bottom:1px solid var(--bd)}#fl{flex:1;overflow:auto;padding-bottom:30px}
+.fr{display:flex;align-items:center;padding:9px 4px 9px 10px;font-size:14px}.fr.on{background:var(--bd)}.fr .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fr button{border:0;background:transparent;padding:4px 10px;font-size:16px;color:var(--mute)}</style></head><body>
+<header><button id="fx2">📁</button><b>🐍 PyIDE Pro <small id="st3" style="font-weight:400;color:var(--mute);font-size:11px"></small></b><button id="th">◐</button><button id="mn">⋮</button><button class="run" id="run">▶ Run</button></header>
+<div id="menu"><h6>FILE</h6><button id="fe">📁 File explorer</button><button id="nw">📄 New file</button><button id="nf">📁 New folder</button><button id="up">📂 Open from phone</button><button id="sv">💾 Save</button><button id="rn">✏️ Rename</button><button id="dn">⬇️ Download</button><button id="dl">🗑 Delete file</button>
+<h6>EDIT</h6><button id="fd">🔍 Find &amp; Replace</button><button id="gl">↪ Go to line</button>
+<h6>TOOLS</h6><button id="co">🖥 Console (output)</button><button id="tm">⌨ Terminal</button><button id="pp">📦 Install package</button>
+<h6>APP</h6><button id="stg">⚙ Settings</button>
+<span hidden><button id="fm"></button><button id="fp"></button><button id="cl"></button><button id="cp"></button></span><input type="file" id="fi" accept=".py,.txt" multiple hidden></div>
+<div id="md"><div id="mc"><div id="mt"></div><input id="mi" autocapitalize="off" autocomplete="off" spellcheck="false"><div id="mb"><button id="mcn">Cancel</button><button id="mok" class="run">OK</button></div></div></div><div id="ts"></div>
+<div id="tabs"></div>
+<div id="fb"><input id="fq" placeholder="Find"><input id="fr" placeholder="Replace with"><button id="fpv">↑</button><button id="fnx">↓</button><button id="f1">Replace</button><button id="fa">All</button><button id="fx">✕</button></div>
+<div id="edwrap"><pre id="gut">1</pre><div id="box"><div id="el"></div><pre id="hl"></pre><textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea></div></div>
+<div id="sp"><div id="sh"><button id="sb">← Back</button><b>⚙ Settings</b></div><div id="sl"></div></div>
+<div id="rp"><div id="rh"><button id="rb">← Editor</button><b>⌨ Terminal</b><span><button id="rup">↑</button> <button id="rdn">↓</button> <button id="rcl">Clear</button> <button id="rrs">Reset</button></span></div><pre id="rcon"></pre><div id="rq"></div><div id="rbar"><span id="rpr">&gt;&gt;&gt;</span><input id="rin" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"><button id="rsd">↵</button></div></div>
+<div id="dw"><div id="dws"></div><div id="dwp"><div id="dwh"><b>📁 Files</b><span><button id="dnf">📄+</button> <button id="dnd">📁+</button> <button id="dwx">✕</button></span></div><div id="floc"></div><div id="fl"></div></div></div>
+<div id="ac"></div><div id="sym"></div>
+<div id="out"><div id="oh"><button id="bk">← Editor</button><span id="st">ready</span><span><button id="rr">▶ Run again</button> <button id="cp2">Copy</button></span></div><pre id="con"></pre><canvas id="turtle" width="1" height="1"></canvas><div id="tg"></div></div>
+<script>
+const $=id=>document.getElementById(id);
+const DEF={"main.py":"# Welcome to PyIDE!\nname = input('Your name? ')\nfor i in range(3):\n    print('Hello', name, i)\n"};
+let files={},cur="main.py",running=false,pendingIn=null;
+var dirs=[],otabs=[],selDir="",openDirs={};
+const save=()=>{try{localStorage.setItem("pyide",JSON.stringify({files,cur,d:dirs,t:document.documentElement.dataset.theme||""}));return true}catch(e){return false}};
+try{const d=JSON.parse(localStorage.getItem("pyide"));if(d&&d.files){files=d.files;dirs=d.d||[];cur=d.cur in d.files?d.cur:Object.keys(d.files)[0];if(d.t)document.documentElement.dataset.theme=d.t}}catch(e){}
+if(!Object.keys(files).length)files={...DEF};
+const KW="False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield".split(" ");
+const BI="print input len range int str float list dict set tuple open sum min max abs sorted enumerate zip map filter type isinstance round self".split(" ");
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const RX=new RegExp('(#.*)|("""[\\s\\S]*?("""|$)|\'\'\'[\\s\\S]*?(\'\'\'|$)|"(?:\\\\.|[^"\\\\\\n])*"?|\'(?:\\\\.|[^\'\\\\\\n])*\'?)|\\b(\\d+\\.?\\d*)\\b|\\b([A-Za-z_]\\w*)\\b','g');
+function hi(t){let o="",l=0,m,pk="";RX.lastIndex=0;while((m=RX.exec(t))){o+=esc(t.slice(l,m.index));const x=m[0];let c="";
+if(m[1])c="c";else if(m[2])c="s";else if(m[5])c="n";else if(KW.includes(x))c="k";else if(m[6]&&(pk==="def"||pk==="class"))c="f";else if(BI.includes(x))c="b";if(m[6])pk=x;
+o+=c?`<span class="${c}">${esc(x)}</span>`:esc(x);l=m.index+x.length;if(!x.length)RX.lastIndex++}
+return o+esc(t.slice(l))+"\n"}
+function render(){const t=$("ed").value;$("hl").innerHTML=hi(t);const n=t.split("\n").length;let g="";for(let i=1;i<=n;i++)g+=(i===errLine&&errFile===cur?"●":"")+i+"\n";$("gut").textContent=g;sync()}
+function sync(){const e=$("ed");$("hl").scrollTop=e.scrollTop;$("hl").scrollLeft=e.scrollLeft;$("gut").scrollTop=e.scrollTop;posErr()}
+function tabs(){const t=$("tabs");t.innerHTML="";Object.keys(files).forEach(n=>{const d=document.createElement("div");d.className="tab"+(n===cur?" on":"");d.textContent=n;if(n===cur){const x=document.createElement("span");x.textContent="  ×";x.onclick=ev=>{ev.stopPropagation();$("dl").click()};d.appendChild(x)}d.onclick=()=>{files[cur]=$("ed").value;cur=n;load();save()};t.appendChild(d)})}
+function load(){$("ed").value=files[cur];tabs();render()}
+$("ed").addEventListener("input",()=>{files[cur]=$("ed").value;errLine=0;render();if(ST.autosave)save()});
+$("ed").addEventListener("scroll",sync);
+function ins(s,back){const e=$("ed");e.focus();if(!document.execCommand("insertText",false,s))e.setRangeText(s,e.selectionStart,e.selectionEnd,"end");if(back)e.selectionStart=e.selectionEnd=e.selectionStart-back;e.dispatchEvent(new Event("input"))}
+const PR={"(":")","[":"]","{":"}",'"':'"',"'":"'"};
+function enter(){const e=$("ed"),ln=e.value.slice(0,e.selectionStart).split("\n").pop();let ind=ln.match(/^\s*/)[0];if(/:\s*$/.test(ln))ind+=" ".repeat(ST.tab);ins("\n"+ind)}
+$("ed").addEventListener("keydown",k=>{if(k.key==="Tab"){k.preventDefault();k.shiftKey?blk(dedent):tab()}});
+$("ed").addEventListener("beforeinput",ev=>{const e=$("ed");if(!ev.cancelable||ev.isComposing)return;const a=e.selectionStart,b=e.selectionEnd,v=e.value,t=ev.inputType;
+if(t==="insertLineBreak"||t==="insertParagraph"){ev.preventDefault();enter();return}
+if(t==="insertText"&&ev.data&&ev.data.length===1){const d=ev.data;
+if(ST.pairs&&a===b&&v[a]===d&&")]}\"'".includes(d)){ev.preventDefault();e.setSelectionRange(a+1,a+1);return}
+if(ST.pairs&&PR[d]&&a===b){const p=v[a-1]||"";if((d==='"'||d==="'")&&/\w/.test(p))return;ev.preventDefault();ins(d+PR[d],1)}}
+else if(ST.pairs&&t==="deleteContentBackward"&&a===b&&a>0&&PR[v[a-1]]===v[a]){ev.preventDefault();e.setSelectionRange(a-1,a+1);document.execCommand("delete")}});
+const SY=["↶","↷","⇥","⇤","#±","(",")","[","]","{","}",":","=","\"","'","_","#",".",",","+","-","*","/","%","<",">","!","&","|"];
+SY.forEach(s=>{const b=document.createElement("button");b.textContent=s;b.onmousedown=e=>e.preventDefault();b.onclick=()=>{if(s==="↶")document.execCommand("undo");else if(s==="↷")document.execCommand("redo");else if(s==="⇥")tab();else if(s==="⇤")blk(dedent);else if(s==="#±")blk(togc);else ins(s)};$("sym").appendChild(b)});
+$("mn").onclick=e=>{e.stopPropagation();$("menu").classList.toggle("show")};
+document.addEventListener("click",()=>$("menu").classList.remove("show"));
+const out=$("out"),showOut=()=>out.classList.add("show");
+$("bk").onclick=()=>{out.classList.remove("show");if(errLine&&errFile===cur)gotoLine(errLine)};
+$("rr").onclick=()=>$("run").click();
+$("cp2").onclick=()=>$("cp").click();
+new MutationObserver(()=>{$("st3").textContent="· "+$("st").textContent}).observe($("st"),{childList:true});
+$("th").onclick=()=>{const r=document.documentElement,d=r.dataset.theme==="light"?"dark":"light";r.dataset.theme=d;ST.theme=d;saveST();save()};
+$("nw").onclick=()=>{let n=prompt("File name","new.py");if(!n)return;if(!n.endsWith(".py"))n+=".py";if(files[n]){alert("Already exists");return}files[n]="";cur=n;load();save()};
+$("rn").onclick=()=>{let n=prompt("New name",cur);if(!n||n===cur)return;if(files[n]){alert("Already exists");return}files[n]=files[cur];delete files[cur];cur=n;load();save()};
+$("dl").onclick=()=>{if(!confirm("Delete "+cur+"?"))return;delete files[cur];if(!Object.keys(files).length)files["main.py"]="";cur=Object.keys(files)[0];load();save()};
+$("dn").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([files[cur]],{type:"text/plain"}));a.download=cur;a.click()};
+$("up").onclick=()=>$("fi").click();
+$("fi").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{files[f.name]=t;cur=f.name;load();save()})};
+let FS=14;try{FS=+localStorage.getItem("pyide_fs")||14}catch(e){}
+function setFS(n){FS=Math.max(10,Math.min(24,n));document.documentElement.style.setProperty("--fs",FS+"px");if(window.posErr)posErr();try{localStorage.setItem("pyide_fs",FS)}catch(e){}}setFS(FS);
+$("fm").onclick=e=>{e.stopPropagation();setFS(FS-1)};$("fp").onclick=e=>{e.stopPropagation();setFS(FS+1)};
+$("cp").onclick=()=>{try{navigator.clipboard.writeText(con.innerText)}catch(e){}};
+$("cl").onclick=()=>{$("con").innerHTML=""};
+const con=$("con");
+function w(t,cls){const s=document.createElement("span");if(cls)s.className=cls;s.textContent=t;con.appendChild(s);con.scrollTop=con.scrollHeight}
+let py=null;
+const PYURL="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+let T0=0;function setRun(r){running=r;const b=$("run");b.textContent=r?(py?"running...":"■ Stop"):"▶ Run";b.className=r&&!py?"stop":"run";$("rr").textContent=r?(py?"running...":"■ Stop"):"▶ Run again";$("st").textContent=r?"running...":"finished"}
+let sk=false;
+const SRC=[["https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt.min.js","https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt-stdlib.js"],["https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js","https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"]];
+const ld=u=>new Promise((r,j)=>{const e=document.createElement("script");e.src=u;e.onload=r;e.onerror=j;document.head.appendChild(e)});
+async function loadSk(){for(const [a,b] of SRC){try{await ld(a);await ld(b);if(window.Sk&&Sk.builtinFiles){sk=true;if(!py)$("st").textContent="Basic Python ready";return}}catch(e){}}$("st").textContent="engine failed";w("Koi engine load nahi hua. Internet check karke reload karo.\n","e")}
+function rd(f){if(!Sk.builtinFiles||!Sk.builtinFiles.files[f])throw "File not found: '"+f+"'";return Sk.builtinFiles.files[f]}
+function inp(p){return new Promise((res,rej)=>{pendingIn=rej;if(p)w(p);const i=document.createElement("input"),b=document.createElement("button");b.textContent="↵ Send";b.style.marginLeft="6px";con.appendChild(i);con.appendChild(b);i.focus();const done=()=>{const v=i.value;i.replaceWith(document.createTextNode(v+"\n"));b.remove();pendingIn=null;res(v)};i.onkeydown=e=>{if(e.key==="Enter")done()};b.onclick=done;con.scrollTop=con.scrollHeight})}
+async function runSk(code){$("tg").innerHTML="";if(/turtle/.test(code))Sk.TurtleGraphics={target:"tg",width:Math.min(innerWidth-20,400),height:220};
+Sk.configure({output:t=>w(t),read:rd,inputfun:inp,inputfunTakesPrompt:true,__future__:Sk.python3,yieldLimit:200});Sk.execStart=Date.now();Sk.execLimit=Number.POSITIVE_INFINITY;
+try{await Sk.misceval.asyncToPromise(()=>Sk.importMainWithBody("<stdin>",false,code,true));w("\n[Finished in "+((performance.now()-T0)/1000).toFixed(2)+"s]\n")}catch(e){w(Sk.execLimit===1?"\n[Stopped]\n":"\n"+e.toString()+"\n","e");if(Sk.execLimit!==1){let t=e.toString();if(!/on line/.test(t)&&e.traceback&&e.traceback.length)t+=" on line "+e.traceback[0].lineno;errUI(t)}}}
+loadSkLater=0;const eng=window.Native?Promise.resolve():(async()=>{$("st").textContent="loading Python...";
+try{await new Promise((ok,no)=>{const e=document.createElement("script");e.src=PYURL+"pyodide.js";e.onload=ok;e.onerror=no;document.head.appendChild(e)});
+py=await loadPyodide({indexURL:PYURL});
+py.setStdout({batched:t=>(RP?rw:w)(t+"\n")});py.setStderr({batched:t=>(RP?rw:w)(t+"\n","e")});
+py.setStdin({stdin:()=>{const v=prompt("input()");const r=v===null?"":v;w(r+"\n");return r}});
+$("st").textContent="Python "+py.runPython("import sys;'.'.join(map(str,sys.version_info[:3]))")+" ready"}
+catch(e){py=null;w("Full Python (WebAssembly) is viewer me nahi chala. Basic engine use ho raha hai. Full power ke liye file Chrome me kholo.\n","e");}})();
+if(!window.Native)loadSk();
+$("run").onclick=async()=>{
+if(running){if(window.Native){Native.stop();return}if(!py&&sk){Sk.execLimit=1;if(pendingIn)pendingIn("stopped")}return}
+if(autoRun){chain++;autoRun=false}else chain=0;T0=performance.now();runFile=cur;errLine=0;render();showOut();
+files[cur]=$("ed").value;save();con.innerHTML="";if(pendNote){w("✨ "+pendNote+"\n\n");pendNote=""}
+if(!window.Native&&!py&&!sk){w("Engine load ho raha hai, ruko...\n");for(let i=0;i<100&&!py&&!sk;i++)await new Promise(r=>setTimeout(r,300));con.innerHTML="";if(!py&&!sk){w("Engine load nahi hua. Internet check karke reload karo.\n","e");return}}
+setRun(true);const code=files[cur];
+if(window.Native){runNative(code);return}
+if(!py){await runSk(code);setRun(false);return}
+try{for(const n in files){const d=n.split("/").slice(0,-1).join("/");if(d)py.FS.mkdirTree(d);py.FS.writeFile(n,files[n])}
+await py.loadPackagesFromImports(code,{messageCallback:m=>{$("st").textContent=m},errorCallback:m=>w(m+"\n","e")});
+if(/matplotlib/.test(code))py.runPython("import matplotlib;matplotlib.use('agg')");
+const g=py.globals.get("dict")();g.set("__name__","__main__");
+await py.runPythonAsync(code,{globals:g});g.destroy();
+const im=py.runPython(`
+import sys,io,base64
+out=[]
+if 'matplotlib.pyplot' in sys.modules:
+    import matplotlib.pyplot as plt
+    for n in plt.get_fignums():
+        b=io.BytesIO();plt.figure(n).savefig(b,format='png',dpi=110,bbox_inches='tight');out.append(base64.b64encode(b.getvalue()).decode())
+    plt.close('all')
+out`).toJs();
+for(const d of im){const i=document.createElement("img");i.src="data:image/png;base64,"+d;con.appendChild(i)}
+w("\n[Finished in "+((performance.now()-T0)/1000).toFixed(2)+"s]\n")}
+catch(e){const m=String(e.message||e).split("\n");const k=m.findIndex(x=>x.includes('File "<exec>"'));w((k>0?m.slice(k).join("\n"):m.join("\n"))+"\n","e");errUI(String(e.message||e))}
+setRun(false)};
+$("pp").onclick=async()=>{const n=prompt("Package name (e.g. requests, sympy, scipy)");if(!n)return;
+if(!py){alert("pip ke liye full Python chahiye (Chrome me kholo)");return}
+showOut();con.innerHTML="";w("Installing "+n+"...\n");$("st").textContent="pip...";
+try{await py.loadPackage("micropip");await py.runPythonAsync("import micropip\nawait micropip.install('"+n.replace(/[^\w.\-\[\]=<>]/g,"")+"')");w("Installed: "+n+"\n")}
+catch(e){w("Install fail: "+(e.message||e).split("\n").slice(-2).join(" ")+"\n","e")}
+$("st").textContent="ready"};
+
+function blk(fn){const e=$("ed"),v=e.value;let a=e.selectionStart,b=e.selectionEnd;if(b>a&&v[b-1]==="\n")b--;const s0=v.lastIndexOf("\n",a-1)+1;let e1=v.indexOf("\n",b);if(e1<0)e1=v.length;
+const nt=fn(v.slice(s0,e1).split("\n")).join("\n");e.focus();e.setSelectionRange(s0,e1);document.execCommand("insertText",false,nt);e.setSelectionRange(s0,s0+nt.length);e.dispatchEvent(new Event("input"))}
+const indent=L=>L.map(x=>x?" ".repeat(ST.tab)+x:x);
+const dedent=L=>L.map(x=>x.replace(new RegExp("^( {1,"+ST.tab+"}|\\t)"),""));
+const togc=L=>{const ne=L.filter(x=>x.trim());const all=ne.length&&ne.every(x=>/^\s*#/.test(x));return L.map(x=>!x.trim()?x:all?x.replace(/^(\s*)# ?/,"$1"):x.replace(/^(\s*)/,"$1# "))};
+function tab(){const e=$("ed");if(e.value.slice(e.selectionStart,e.selectionEnd).includes("\n"))blk(indent);else ins(" ".repeat(ST.tab))}
+function findNext(back){const e=$("ed"),q=$("fq").value;if(!q)return;const v=e.value.toLowerCase(),ql=q.toLowerCase();let i=back?v.lastIndexOf(ql,e.selectionStart-1):v.indexOf(ql,e.selectionEnd);if(i<0)i=back?v.lastIndexOf(ql):v.indexOf(ql);
+if(i<0){$("st3").textContent="· not found";return}e.focus();e.setSelectionRange(i,i+q.length);e.scrollTop=Math.max(0,(v.slice(0,i).split("\n").length-3)*FS*1.5)}
+$("fd").onclick=()=>{$("fb").classList.add("show");const e=$("ed"),t=e.value.slice(e.selectionStart,e.selectionEnd);if(t&&!t.includes("\n"))$("fq").value=t;$("fq").focus()};
+$("fx").onclick=()=>$("fb").classList.remove("show");
+$("fnx").onclick=()=>findNext(false);$("fpv").onclick=()=>findNext(true);$("fq").onkeydown=e=>{if(e.key==="Enter")findNext(false)};
+$("f1").onclick=()=>{const e=$("ed"),q=$("fq").value;if(q&&e.value.slice(e.selectionStart,e.selectionEnd).toLowerCase()===q.toLowerCase()){ins($("fr").value)}findNext(false)};
+$("fa").onclick=()=>{const e=$("ed"),q=$("fq").value;if(!q)return;const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");let n=0;const r=$("fr").value;const nv=e.value.replace(re,()=>{n++;return r});if(!n){$("st3").textContent="· not found";return}e.focus();e.select();document.execCommand("insertText",false,nv);e.dispatchEvent(new Event("input"));$("st3").textContent="· "+n+" replaced"};
+$("gl").onclick=()=>{const n=parseInt(prompt("Go to line number"),10);if(!n)return;const e=$("ed"),L=e.value.split("\n");const k=Math.min(n,L.length);let p=0;for(let i=0;i<k-1;i++)p+=L[i].length+1;e.focus();e.setSelectionRange(p,p);e.scrollTop=Math.max(0,(k-3)*FS*1.5)};
+
+const AC=$("ac");
+const M={math:"sqrt pow pi e floor ceil sin cos tan log log10 factorial gcd fabs radians degrees",random:"randint random choice shuffle uniform sample seed randrange",os:"listdir getcwd path mkdir remove rename environ system",sys:"argv exit path version platform stdin stdout",time:"time sleep strftime localtime perf_counter",json:"dumps loads dump load",datetime:"datetime date timedelta now today",string:"ascii_letters digits ascii_lowercase ascii_uppercase punctuation",turtle:"forward backward left right penup pendown goto color circle begin_fill end_fill speed done Screen Turtle"};
+const GEN="append extend insert remove pop sort reverse index count copy clear keys values items get update split join strip lstrip rstrip replace upper lower title capitalize startswith endswith find format isdigit isalpha center zfill add discard union".split(" ");
+const CONST=new Set("pi e argv path environ version platform stdin stdout ascii_letters digits ascii_lowercase ascii_uppercase punctuation".split(" "));
+const BI2="print input len range int str float list dict set tuple open sum min max abs sorted enumerate zip map filter type isinstance round bool reversed any all chr ord hex bin id dir help eval exec iter next pow divmod format repr hash vars".split(" ");
+const SP=new Set("import from def class if elif while for with return in not and or is lambda assert del raise global nonlocal yield await async as".split(" "));
+const SN={for:"for i in range(§):\n    ",while:"while §:\n    ",if:"if §:\n    ",def:"def §():\n    ",class:"class §:\n    ",try:"try:\n    §\nexcept Exception as e:\n    print(e)",with:"with open(§) as f:\n    ",main:"if __name__ == \"__main__\":\n    §"};
+function hideAc(){AC.classList.remove("show");AC.innerHTML=""}
+function ac(){if(!ST.ac)return hideAc();const e=$("ed");if(document.activeElement!==e||e.selectionStart!==e.selectionEnd)return hideAc();
+const pos=e.selectionStart,v=e.value,ls=v.lastIndexOf("\n",pos-1)+1,line=v.slice(ls,pos);if(line.includes("#"))return hideAc();
+const dm=line.match(/([A-Za-z_]\w*)\.(\w*)$/),wm=line.match(/[A-Za-z_]\w*$/);let pre="",L=[];
+if(dm){pre=dm[2];(M[dm[1]]?M[dm[1]].split(" "):GEN).forEach(n=>L.push({l:n,t:CONST.has(n)?n:n+"()",b:CONST.has(n)?0:1}))}
+else if(wm){pre=wm[0];const seen=new Set();
+Object.keys(SN).forEach(k=>{L.push({l:k,lab:k+" ⏎",t:SN[k],sn:1});seen.add(k)});
+KW.forEach(k=>{if(!seen.has(k)){L.push({l:k,t:SP.has(k)?k+" ":k,b:0});seen.add(k)}});
+BI2.forEach(k=>{if(!seen.has(k)){L.push({l:k,t:k+"()",b:1});seen.add(k)}});
+(v.match(/[A-Za-z_]\w{2,}/g)||[]).forEach(k=>{if(!seen.has(k)&&k!==pre){L.push({l:k,t:k,b:0});seen.add(k)}})}
+else return hideAc();
+const pl=pre.toLowerCase();L=L.filter(x=>x.l.toLowerCase().startsWith(pl)&&x.l!==pre).slice(0,12);
+AC.innerHTML="";if(!L.length)return hideAc();
+const ind=line.match(/^\s*/)[0];
+L.forEach(x=>{const b=document.createElement("button");b.textContent=x.lab||x.l;if(x.sn)b.className="sn";b.onpointerdown=ev=>ev.preventDefault();
+b.onclick=()=>{let t=x.t.replace(/    /g," ".repeat(ST.tab)).replace(/\n/g,"\n"+ind),i=t.indexOf("§"),back=x.b||0;if(i>=0){t=t.replace("§","");back=t.length-i}e.focus();e.setSelectionRange(pos-pre.length,pos);ins(t,back)};AC.appendChild(b)});
+AC.classList.add("show");AC.scrollLeft=0}
+document.addEventListener("selectionchange",()=>{if(document.activeElement===$("ed"))ac()});
+$("ed").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("ed"))hideAc()},200));
+
+var ST={theme:"auto",tab:4,autosave:true,ac:true,pairs:true,wrap:false,ln:true,autofix:false};
+try{Object.assign(ST,JSON.parse(localStorage.getItem("pyide_set")))}catch(e){}
+function saveST(){try{localStorage.setItem("pyide_set",JSON.stringify(ST))}catch(e){}}
+function applyST(){const r=document.documentElement;if(ST.theme==="auto")delete r.dataset.theme;else r.dataset.theme=ST.theme;
+$("edwrap").classList.toggle("wrap",!!ST.wrap);$("edwrap").classList.toggle("nol",!ST.ln);$("ed").style.tabSize=$("hl").style.tabSize=ST.tab;if(!ST.ac)hideAc();saveST();save()}
+const ROWS=[["Theme","sel","theme",[["auto","Auto (phone)"],["dark","Dark"],["light","Light"]]],["Font size","fs"],["Tab size","sel","tab",[[2,"2 spaces"],[4,"4 spaces"],[8,"8 spaces"]]],["Auto-save","tg","autosave","File changes khud save hote hain. Off ho to Save ya Run dabao."],["Autocomplete","tg","ac","Likhte waqt suggestions"],["Auto-close brackets","tg","pairs","( ) [ ] { } \" ' ka jodi"],["Word wrap","tg","wrap","Lambi line niche aati hai"],["Line numbers","tg","ln"],["Auto-fix on error","tg","autofix","Error aane par khud sudhar kar dobara run (max 2 baar)"]];
+function drawST(){const L=$("sl");L.innerHTML="";ROWS.forEach(r=>{const d=document.createElement("div");d.className="row";const lb=document.createElement("div");lb.innerHTML=r[0]+(r[3]&&r[1]==="tg"?"<small>"+r[3]+"</small>":"");d.appendChild(lb);
+if(r[1]==="sel"){const sl=document.createElement("select");r[3].forEach(o=>{const op=document.createElement("option");op.value=o[0];op.textContent=o[1];if(String(ST[r[2]])===String(o[0]))op.selected=true;sl.appendChild(op)});sl.onchange=()=>{ST[r[2]]=r[2]==="tab"?+sl.value:sl.value;applyST()};d.appendChild(sl)}
+else if(r[1]==="tg"){const b=document.createElement("button");b.className="tgl"+(ST[r[2]]?" on":"");b.onclick=()=>{ST[r[2]]=!ST[r[2]];b.classList.toggle("on");applyST()};d.appendChild(b)}
+else{const w=document.createElement("div");const m=document.createElement("button"),p=document.createElement("button"),v=document.createElement("span");m.textContent="−";p.textContent="+";v.textContent="  "+FS+"px  ";m.onclick=()=>{setFS(FS-1);v.textContent="  "+FS+"px  "};p.onclick=()=>{setFS(FS+1);v.textContent="  "+FS+"px  "};w.append(m,v,p);d.appendChild(w)}
+L.appendChild(d)});
+const rs=document.createElement("button");rs.textContent="Reset settings";rs.style.margin="16px 8px 0 0";rs.onclick=()=>{ST={theme:"auto",tab:4,autosave:true,ac:true,pairs:true,wrap:false,ln:true,autofix:false};setFS(14);applyST();drawST()};
+const da=document.createElement("button");da.textContent="Delete all files";da.style.cssText="margin-top:16px;color:var(--err)";da.onclick=async()=>{if(!await confirmBox("Saari files delete ho jayengi. Pakka?"))return;files={"main.py":""};dirs=[];otabs=[];selDir="";cur="main.py";load();save();drawST()};L.append(rs,da)}
+$("stg").onclick=()=>{drawST();$("sp").classList.add("show")};$("sb").onclick=()=>$("sp").classList.remove("show");
+$("sv").onclick=()=>{files[cur]=$("ed").value;save();$("st3").textContent="· saved"};
+applyST();
+
+var errLine=0,errFile="",runFile="main.py";
+function posErr(){const el=$("el"),e=$("ed");if(!errLine||errFile!==cur||ST.wrap){el.style.display="none";return}const h=FS*1.5;el.style.display="block";el.style.height=h+"px";el.style.top=(10+(errLine-1)*h-e.scrollTop)+"px"}
+function gotoLine(n){const e=$("ed"),L=e.value.split("\n"),k=Math.min(n,L.length);let p=0;for(let i=0;i<k-1;i++)p+=L[i].length+1;e.setSelectionRange(p,p);e.scrollTop=Math.max(0,(k-4)*FS*1.5);sync()}
+function perr(t){let m,r=null;const re=/File "([^"]+)", line (\d+)/g;while((m=re.exec(t))){const f=m[1].split("/").pop();if(m[1]==="<exec>")r=[runFile,+m[2]];else{const k=Object.keys(files).find(q=>q.split("/").pop()===f);if(k)r=[k,+m[2]]}}
+if(r)return r;m=t.match(/on line (\d+)/);return m?[runFile,+m[1]]:null}
+function markErr(f,l){if(files[f]&&f!==cur){files[cur]=$("ed").value;cur=f;load()}errFile=f;errLine=l;render()}
+function errUI(t){const p=perr(t);if(p){markErr(p[0],p[1]);const b=document.createElement("button");b.textContent="⤴ "+p[0]+" · line "+p[1]+" par jao";b.style.margin="8px 8px 8px 0";b.onclick=()=>{$("out").classList.remove("show");gotoLine(p[1])};con.appendChild(b)}
+const f=document.createElement("button");f.textContent="✨ Auto-fix";f.style.cssText="margin:8px 0;border-color:var(--acc);color:var(--acc)";f.onclick=()=>autoFix(t,f);con.appendChild(f);con.scrollTop=con.scrollHeight;
+if(ST.autofix&&chain<2)setTimeout(()=>autoFix(t,f),500)}
+var pendNote="",autoRun=false,chain=0,fixing=false;
+function lev(a,b){const d=[];for(let i=0;i<=a.length;i++)d[i]=[i];for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
+function localFix(code,t){const nm=t.match(/name '(\w+)' is not defined/);
+if(nm&&M[nm[1]])return{fixed:"import "+nm[1]+"\n"+code,explain:"'"+nm[1]+"' import karna bhool gaye the, upar import laga diya."};
+const p=perr(t);if(!p)return null;const L=code.split("\n"),i=p[1]-1;if(i<0||i>=L.length)return null;let ln=L[i],why="";
+const ind=x=>x.match(/^\s*/)[0],U=" ".repeat(ST.tab),prev=()=>{for(let k=i-1;k>=0;k--)if(L[k].trim())return L[k];return""};
+const am=t.match(/has no attribute '(\w+)'/);
+if(nm){const pool=new Set([...(code.match(/[A-Za-z_]\w*/g)||[]),...BI2,...KW]);let best=null,bd=3;pool.forEach(c=>{if(c===nm[1])return;const d=lev(c.toLowerCase(),nm[1].toLowerCase());if(d<bd){bd=d;best=c}});if(best){ln=ln.replace(new RegExp("\\b"+nm[1]+"\\b","g"),best);why="'"+nm[1]+"' ki spelling galat thi, '"+best+"' kar diya."}}
+else if(am){let best=null,bd=3;GEN.forEach(c=>{const d=lev(c,am[1]);if(d<bd){bd=d;best=c}});if(best){ln=ln.replace(new RegExp("\\."+am[1]+"\\b"),"."+best);why="'."+am[1]+"' ki spelling galat thi, '."+best+"' kar diya."}}
+else if(/expected an indented block/.test(t)){ln=ind(prev())+U+ln.trim();why="Ye line upar wali line ke andar (indent) honi thi."}
+else if(/unexpected indent|unindent does not match|inconsistent use of tabs/.test(t)){ln=ind(prev())+ln.trim();why="Indent galat tha, upar wali line ke barabar kar diya."}
+else if(/unterminated string|EOL while scanning/.test(t)){const q=(ln.match(/["']/)||[])[0];if(q){ln=ln.replace(/\s+$/,"")+q;why="Quote band karna bhool gaye the."}}
+else if(/SyntaxError|invalid syntax|never closed/i.test(t)){const w2=[];
+if(/^\s*(if|elif|while)\b/.test(ln)&&/[^=!<>]=[^=]/.test(ln.replace(/:\s*$/,""))){ln=ln.replace(/([^=!<>])=([^=])/,"$1==$2");w2.push("'=' ki jagah '==' lagaya")}
+if(/^\s*(if|elif|else|for|while|def|class|try|except|finally|with)\b[^#]*[^:\s#]\s*$/.test(ln)&&!/[(\[{,]\s*$/.test(ln)){ln=ln.replace(/\s+$/,"")+":";w2.push("line ke end me ':' lagaya")}
+else if(/^\s*print\s+[^(\s=]/.test(ln)){ln=ln.replace(/^(\s*)print\s+(.*)$/,"$1print($2)");w2.push("print ke saath bracket lagaye")}
+else{const o=(ln.match(/\(/g)||[]).length,c=(ln.match(/\)/g)||[]).length;if(o>c){ln=ln.replace(/\s+$/,"")+")".repeat(o-c);w2.push("bracket band kiya")}}
+why=w2.join(", ")}
+if(!why||ln===L[i])return null;L[i]=ln;return{fixed:L.join("\n"),explain:why.charAt(0).toUpperCase()+why.slice(1)+"."}}
+function autoFix(t,btn){const code=$("ed").value,r=localFix(code,t);
+if(!r||!r.fixed||r.fixed===code){if(btn)btn.textContent="✨ Is error ka khud fix nahi mila";return}
+const e=$("ed");e.focus({preventScroll:true});e.select();document.execCommand("insertText",false,r.fixed);e.dispatchEvent(new Event("input"));e.blur();
+pendNote="Auto-fix: "+r.explain+" (undo: editor me ↶)";autoRun=true;setTimeout(()=>$("run").click(),300)}
+
+var RP=false,rhist=[],rhi=0,rbuf=[],ric=null,sdefs=[],rlast="";
+function rw(t,c){const s=document.createElement("span");if(c)s.className=c;s.textContent=t;$("rcon").appendChild(s);$("rcon").scrollTop=1e9}
+function banner(){rw("PyIDE Terminal · "+(py?"Python 3.12 (full)":"Basic Python")+"\nLine likho aur ↵ dabao. Block (if/for/def) ke baad khali line se khatam karo.\n\n")}
+const unb=x=>(x.match(/[(\[{]/g)||[]).length>(x.match(/[)\]}]/g)||[]).length;
+async function skRun(src){let mute=sdefs.length>0;const prog=sdefs.join("\n")+(sdefs.length?"\nprint('\\x01')\n":"")+src;
+Sk.configure({output:t=>{if(t.indexOf("\x01")>=0){mute=false;t=t.replace(/\x01\n?/,"")}if(!mute&&t)rw(t)},read:rd,inputfun:p=>prompt(p||"input")||"",inputfunTakesPrompt:true,__future__:Sk.python3});
+await Sk.misceval.asyncToPromise(()=>Sk.importMainWithBody("<repl>",false,prog,true))}
+async function rsend(){const inp=$("rin"),line=inp.value;inp.value="";rw((rbuf.length?"... ":">>> ")+line+"\n","p");if(line.trim())rhist.push(line);rhi=rhist.length;
+if(!py&&!sk){rw(window.Native?"Native Terminal agle step (6A-2) me aayega.\n":"Engine abhi load ho raha hai, thoda ruko...\n","e");return}
+RP=true;
+try{if(py){if(!ric)ric=py.runPython("import code\nc=code.InteractiveConsole({'__name__':'__main__'})\nc");
+if(/^\s*(import|from)\s/.test(line))await py.loadPackagesFromImports(line);
+const more=ric.push(line);rbuf=more?[line]:[];if(more&&/:\s*$/.test(line))inp.value=(line.match(/^\s*/)[0])+" ".repeat(ST.tab);else if(more)inp.value=line.match(/^\s*/)[0]}
+else{rbuf.push(line);const first=rbuf[0];let done;if(rbuf.length===1)done=!(/:\s*$/.test(first)||unb(first));else done=!line.trim();
+if(!done){$("rpr").textContent="...";if(/:\s*$/.test(line))inp.value=(line.match(/^\s*/)[0])+" ".repeat(ST.tab);else inp.value=line.match(/^\s*/)[0];RP=false;return}
+const src=rbuf.join("\n").replace(/\s+$/,"");rbuf=[];
+if(src.trim()){let ok=false;
+if(!src.includes("\n")){try{await skRun("__v=("+src+")\nif __v is not None:\n    print(repr(__v))");ok=true}catch(e){if(!/SyntaxError|ParseError/.test(String(e)))throw e}}
+if(!ok)await skRun(src);if(!/\binput\s*\(/.test(src))sdefs.push(src)}}}
+catch(e){rw(String(e.message||e).split("\n").slice(-3).join("\n")+"\n","e");rbuf=[];if(!py)sdefs=sdefs}
+RP=false;$("rpr").textContent=(py?ric&&rbuf.length:rbuf.length)?"...":">>>"}
+$("tm").onclick=()=>{$("rp").classList.add("show");if(!$("rcon").textContent)banner();$("rin").focus()};
+$("rb").onclick=()=>$("rp").classList.remove("show");
+$("rsd").onclick=rsend;$("rin").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();rsend()}};
+$("rup").onclick=()=>{if(rhi>0){rhi--;$("rin").value=rhist[rhi]}};$("rdn").onclick=()=>{if(rhi<rhist.length-1){rhi++;$("rin").value=rhist[rhi]}else{rhi=rhist.length;$("rin").value=""}};
+$("rcl").onclick=()=>{$("rcon").textContent=""};
+$("rrs").onclick=()=>{if(ric){try{ric.destroy()}catch(e){}}ric=null;sdefs=[];rbuf=[];$("rpr").textContent=">>>";$("rcon").textContent="";banner()};
+["    ","(",")","[","]","{","}",":","\"","'","=",",",".","_"].forEach(c=>{const b=document.createElement("button");b.textContent=c==="    "?"⇥":c;b.onpointerdown=e=>e.preventDefault();b.onclick=()=>{const i=$("rin");i.focus();i.setRangeText(c,i.selectionStart,i.selectionEnd,"end")};$("rq").appendChild(b)});
+
+function toast(m){const t=$("ts");t.textContent=m;t.classList.add("on");clearTimeout(toast.k);toast.k=setTimeout(()=>t.classList.remove("on"),2000)}
+function askBox(title,def,ph,mode){return new Promise(res=>{const m=$("md"),i=$("mi");$("mt").textContent=title;i.style.display="";i.value=def||"";i.placeholder=ph||"";i.inputMode=mode||"text";m.classList.add("show");setTimeout(()=>{i.focus();i.select()},60);
+const done=v=>{m.classList.remove("show");$("mok").onclick=$("mcn").onclick=i.onkeydown=null;res(v)};$("mok").onclick=()=>done(i.value.trim());$("mcn").onclick=()=>done(null);i.onkeydown=e=>{if(e.key==="Enter")done(i.value.trim());else if(e.key==="Escape")done(null)}})}
+function confirmBox(msg){return new Promise(res=>{const m=$("md");$("mt").textContent=msg;$("mi").style.display="none";const done=v=>{m.classList.remove("show");$("mok").onclick=$("mcn").onclick=null;res(v)};$("mok").onclick=()=>done(true);$("mcn").onclick=()=>done(false);m.classList.add("show")})}
+const fixName=n=>{n=n.replace(/[\\/]/g,"_");return /\.\w+$/.test(n)?n:n+".py"};
+$("nw").onclick=async()=>{let n=await askBox("New file","","name.py");if(!n)return;n=fixName(n);if(files[n]){toast("Ye naam pehle se hai");return}files[cur]=$("ed").value;files[n]="";cur=n;errLine=0;load();save();toast("Bani: "+n)};
+$("rn").onclick=async()=>{let n=await askBox("Rename file",cur,"name.py");if(!n||n===cur)return;n=fixName(n);if(files[n]){toast("Ye naam pehle se hai");return}files[n]=$("ed").value;delete files[cur];cur=n;errLine=0;load();save();toast("Rename ho gaya")};
+$("dl").onclick=async()=>{if(!await confirmBox("\""+cur+"\" delete karni hai?"))return;delete files[cur];if(!Object.keys(files).length)files["main.py"]="";cur=Object.keys(files)[0];errLine=0;load();save();toast("Delete ho gayi")};
+$("sv").onclick=()=>{files[cur]=$("ed").value;toast(save()?"Save ho gaya ✓":"Save nahi ho paya (browser storage band hai)")};
+$("up").onclick=()=>$("fi").click();
+$("fi").onchange=async e=>{let n=0;for(const f of e.target.files){const t=await f.text();let name=(selDir?selDir+"/":"")+f.name;while(files[name])name=name.replace(/(\.\w+)?$/,"_1$1");files[name]=t;cur=name;n++}e.target.value="";if(n){errLine=0;load();save();toast(n+" file khuli")}};
+$("dn").onclick=async()=>{files[cur]=$("ed").value;const data=files[cur];if(!data){toast("File khali hai");return}const bn=cur.split("/").pop(),name=bn.endsWith(".py")?bn+".txt":bn;if(window.Native&&Native.saveFile){toast(Native.saveFile(bn,data)?"Downloads/PyIDE me save: "+bn:"Save nahi ho paya");return}
+try{if(window.claude&&claude.use){const d=await Promise.race([claude.use("downloads"),new Promise(x=>setTimeout(()=>x(null),4000))]);if(d){await d.save({filename:name,data});toast("Download: "+name);return}}}catch(e){if(e&&e.code==="declined")return}
+try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"text/plain"}));a.download=cur;document.body.appendChild(a);a.click();a.remove();toast("Download: "+cur)}catch(e){toast("Download nahi ho paya")}};
+$("cp").onclick=async()=>{const t=con.innerText;if(!t.trim()){toast("Output khali hai");return}let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
+if(!ok){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{ok=document.execCommand("copy")}catch(e){}a.remove()}toast(ok?"Output copy hua ✓":"Copy nahi ho paya")};
+$("gl").onclick=async()=>{const v=await askBox("Go to line","","Line number","numeric");const n=parseInt(v,10);if(!n)return;gotoLine(n);$("ed").focus();toast("Line "+Math.min(n,$("ed").value.split("\n").length))};
+$("pp").onclick=async()=>{if(!py){toast(window.Native?"Package install Step 6C me aayega":"Package install ke liye full Python chahiye (Chrome me kholo)");return}const n=await askBox("Install package","","e.g. requests, sympy");if(!n)return;showOut();con.innerHTML="";w("Installing "+n+"...\n");$("st").textContent="pip...";
+try{await py.loadPackage("micropip");await py.runPythonAsync("import micropip\nawait micropip.install('"+n.replace(/[^\w.\-\[\]=<>]/g,"")+"')");w("Installed: "+n+" ✓\n")}catch(e){w("Install fail: "+String(e.message||e).split("\n").slice(-2).join(" ")+"\n","e")}$("st").textContent="ready"};
+
+function tabs(){if(!otabs.includes(cur))otabs.push(cur);otabs=otabs.filter(n=>n in files);const t=$("tabs");t.innerHTML="";
+otabs.forEach(n=>{const d=document.createElement("div");d.className="tab"+(n===cur?" on":"");const l=document.createElement("span");l.textContent=n.split("/").pop();d.appendChild(l);
+const x=document.createElement("span");x.textContent="  ×";x.onclick=ev=>{ev.stopPropagation();closeTab(n)};d.appendChild(x);d.onclick=()=>{files[cur]=$("ed").value;cur=n;errLine=0;load();save()};t.appendChild(d)})}
+function closeTab(n){const i=otabs.indexOf(n);otabs.splice(i,1);if(n===cur){files[cur]=$("ed").value;cur=otabs[Math.max(0,i-1)]||Object.keys(files)[0]||"main.py";if(!(cur in files))files[cur]=""}errLine=0;load();save()}
+function allDirs(){const s=new Set(dirs);Object.keys(files).forEach(f=>{const p=f.split("/");for(let i=1;i<p.length;i++)s.add(p.slice(0,i).join("/"))});return[...s]}
+function reveal(p){const a=p.split("/");for(let i=1;i<a.length;i++)openDirs[a.slice(0,i).join("/")]=true}
+const norm=n=>n.replace(/\\/g,"/").split("/").filter(p=>p&&p!=="."&&p!=="..").join("/");
+const withExt=p=>{const a=p.split("/"),l=a.pop();return[...a,/\.\w+$/.test(l)?l:l+".py"].join("/")};
+function choose(title,items){return new Promise(res=>{const m=$("md"),b=$("mb"),keep=b.innerHTML;$("mt").textContent=title;$("mi").style.display="none";b.innerHTML="";b.style.flexDirection="column";
+const done=v=>{m.classList.remove("show");b.innerHTML=keep;b.style.flexDirection="";res(v)};
+items.forEach((t,i)=>{const x=document.createElement("button");x.textContent=t;x.style.textAlign="left";x.onclick=()=>done(i);b.appendChild(x)});
+const c=document.createElement("button");c.textContent="Cancel";c.onclick=()=>done(-1);b.appendChild(c);m.classList.add("show")})}
+function drawTree(){const L=$("fl");L.innerHTML="";$("floc").textContent="📍 Naya file/folder yahan banega: /"+selDir;const D=allDirs();
+const rt=document.createElement("div");rt.className="fr"+(selDir===""?" on":"");rt.innerHTML='<span class="nm">🏠 root (/)</span>';rt.onclick=()=>{selDir="";drawTree()};L.appendChild(rt);
+const depthOf=p=>p?p.split("/").length:0;
+function level(pre,dp){const inD=x=>depthOf(x)===dp+1&&(!pre||x.startsWith(pre+"/"));
+D.filter(inD).sort().forEach(d=>{row("d",d,dp);if(openDirs[d])level(d,dp+1)});Object.keys(files).filter(inD).sort().forEach(f=>row("f",f,dp))}
+function row(k,p,dp){const r=document.createElement("div");r.className="fr"+((k==="f"&&p===cur)||(k==="d"&&p===selDir)?" on":"");r.style.paddingLeft=(10+dp*16)+"px";
+const nm=document.createElement("span");nm.className="nm";nm.textContent=(k==="d"?(openDirs[p]?"📂 ":"📁 "):(/\.py$/.test(p)?"🐍 ":"📄 "))+p.split("/").pop();r.appendChild(nm);
+const mb=document.createElement("button");mb.textContent="⋮";mb.onclick=e=>{e.stopPropagation();rowMenu(k,p)};r.appendChild(mb);
+r.onclick=()=>{if(k==="d"){openDirs[p]=!openDirs[p];selDir=p;drawTree()}else openFile(p)};L.appendChild(r)}
+level("",0);if(!Object.keys(files).length&&!D.length){const e=document.createElement("div");e.className="fr";e.textContent="Koi file nahi";L.appendChild(e)}}
+function openFile(p){files[cur]=$("ed").value;cur=p;selDir=p.split("/").slice(0,-1).join("/");reveal(p);errLine=0;load();save();closeDrawer()}
+const openDrawer=()=>{files[cur]=$("ed").value;reveal(cur);drawTree();$("dw").classList.add("show")},closeDrawer=()=>$("dw").classList.remove("show");
+async function newFile(dir){let n=await askBox("New file"+(dir?" in /"+dir:""),"","name.py");if(!n)return;n=norm(n);if(!n)return;n=withExt(dir?dir+"/"+n:n);if(n in files){toast("Ye file pehle se hai");return}
+files[cur]=$("ed").value;files[n]="";reveal(n);selDir=n.split("/").slice(0,-1).join("/");cur=n;errLine=0;load();save();drawTree();closeDrawer();toast("Bani: "+n)}
+async function newFolder(dir){let n=await askBox("New folder"+(dir?" in /"+dir:""),"","folder name");if(!n)return;n=norm(n);if(!n)return;const p=dir?dir+"/"+n:n;if(allDirs().includes(p)||p in files){toast("Ye naam pehle se hai");return}dirs.push(p);reveal(p+"/x");selDir=p;save();drawTree();toast("Folder bana: "+p)}
+async function renamePath(p,isDir){let n=await askBox("Rename",p,"naya naam");if(!n)return;n=norm(n);if(!n||n===p)return;if(!isDir)n=withExt(n);
+if(n in files||allDirs().includes(n)){toast("Ye naam pehle se hai");return}files[cur]=$("ed").value;
+if(isDir){if(n.startsWith(p+"/")){toast("Folder apne andar nahi ja sakta");return}const mv=k=>k===p||k.startsWith(p+"/")?n+k.slice(p.length):k;
+const nf={};Object.keys(files).forEach(k=>{nf[mv(k)]=files[k]});files=nf;dirs=dirs.map(mv);otabs=otabs.map(mv);cur=mv(cur);selDir=mv(selDir);const od={};Object.keys(openDirs).forEach(k=>{od[mv(k)]=openDirs[k]});openDirs=od;reveal(n+"/x")}
+else{files[n]=files[p];delete files[p];otabs=otabs.map(k=>k===p?n:k);if(cur===p)cur=n;reveal(n)}
+errLine=0;load();save();drawTree();toast("Rename ho gaya")}
+async function deletePath(p,isDir){const ks=isDir?Object.keys(files).filter(k=>k.startsWith(p+"/")):[p];
+if(!await confirmBox(isDir?"Folder \""+p+"\" aur uski "+ks.length+" files delete karni hain?":"\""+p+"\" delete karni hai?"))return;
+files[cur]=$("ed").value;ks.forEach(k=>delete files[k]);if(isDir){dirs=dirs.filter(d=>d!==p&&!d.startsWith(p+"/"));if(selDir===p||selDir.startsWith(p+"/"))selDir=""}
+otabs=otabs.filter(k=>k in files);if(!(cur in files)){cur=otabs[0]||Object.keys(files)[0];if(!cur){cur="main.py";files[cur]=""}}
+errLine=0;load();save();drawTree();toast("Delete ho gaya")}
+async function rowMenu(k,p){files[cur]=$("ed").value;const it=k==="d"?["📄 New file here","📁 New folder here","✏️ Rename","🗑 Delete"]:["✏️ Rename","📋 Duplicate","🗑 Delete"];
+const i=await choose((k==="d"?"📁 ":"📄 ")+p,it);if(i<0)return;const a=it[i];
+if(a.includes("New file"))newFile(p);else if(a.includes("New folder"))newFolder(p);else if(a.includes("Rename"))renamePath(p,k==="d");
+else if(a.includes("Duplicate")){let n=p.replace(/(\.\w+)?$/,"_copy$1");while(n in files)n=n.replace(/(\.\w+)?$/,"_1$1");files[n]=files[p];save();reveal(n);drawTree();toast("Copy bani: "+n)}else deletePath(p,k==="d")}
+$("fx2").onclick=openDrawer;$("fe").onclick=openDrawer;$("dwx").onclick=closeDrawer;$("dws").onclick=closeDrawer;
+$("dnf").onclick=()=>newFile(selDir);$("dnd").onclick=()=>newFolder(selDir);
+$("nw").onclick=()=>newFile(selDir);$("nf").onclick=()=>newFolder(selDir);$("rn").onclick=()=>renamePath(cur,false);$("dl").onclick=()=>deletePath(cur,false);
+reveal(cur);selDir=cur.split("/").slice(0,-1).join("/");
+
+var nerr="";
+window.onNativeOut=(k,t)=>{w(t,k==="e"?"e":"");if(k==="e")nerr+=t};
+window.onNativeInput=()=>{const i=document.createElement("input"),b=document.createElement("button");b.textContent="↵ Send";b.style.marginLeft="6px";con.appendChild(i);con.appendChild(b);i.focus();const done=()=>{const v=i.value;i.replaceWith(document.createTextNode(v+"\n"));b.remove();Native.sendInput(v)};i.onkeydown=e=>{if(e.key==="Enter")done()};b.onclick=done;con.scrollTop=con.scrollHeight};
+window.onNativeDone=()=>{w("\n[Finished in "+((performance.now()-T0)/1000).toFixed(2)+"s]\n");setRun(false);if(nerr.includes('File "<exec>"')&&!nerr.includes("[Stopped]"))errUI(nerr)};
+function runNative(code){nerr="";Native.run(JSON.stringify(files),cur)}
+window.onNativeBack=()=>{for(const id of ["dw","sp","rp","out","fb"]){const e=$(id);if(e&&e.classList.contains("show")){e.classList.remove("show");return true}}const m=$("menu");if(m.classList.contains("show")){m.classList.remove("show");return true}return false};
+if(window.Native)$("st").textContent="Python 3.12 · offline";
+$("co").onclick=showOut;$("st3").style.cursor="pointer";$("st3").onclick=e=>{e.stopPropagation();showOut()};
+load();
+</script></body></html>
